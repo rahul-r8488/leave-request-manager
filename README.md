@@ -21,7 +21,7 @@ A leave request management app built with the **ABAP RESTful Application Program
 
 > The full object tree of the ZLEAVE_REQUEST package in SAP ADT (Eclipse), showing all objects: Business Services, CDS Views, BDEFs, Dictionary Tables, and Classes.
 
-![ADT Project Overview](docs/screenshots/overview.png)
+![ADT Project Overview](docs/screenshots/overview_structure.png)
 
 ---
 
@@ -53,12 +53,11 @@ leave-request-manager/
 │       └── zui_leave.srvd.srvdsrv                        # OData V4 service definition
 ├── docs/
 │   └── screenshots/
-│       ├── overview.png
-│       ├── list_report.png
-│       ├── create_request.png
-│       ├── object_page.png
-│       ├── error_end_date.png
-│       └── approved_request.png
+│       ├── overview_structure.png
+│       ├── homepage.png
+│       ├── create.png
+│       ├── homepage_after_create.png
+│       └── leave_update_delete_reject_approve.png
 └── README.md
 ```
 
@@ -69,35 +68,28 @@ leave-request-manager/
 ### List Report – All Requests
 > The main list report showing all leave requests with Employee, Leave Type, Start/End Date, Days, and Status. Filter bar shows Leave Type and Status dropdowns.
 
-![List Report](docs/screenshots/list_report.png)
+![List Report](docs/screenshots/homepage.png)
 
 ---
 
 ### Create New Request
 > The draft form to fill in Employee, Leave Type (value help — Annual AL / Sick SL / Casual CL), Start Date, End Date, and Reason.
 
-![Create Request](docs/screenshots/create_request.png)
+![Create Request](docs/screenshots/create.png)
 
 ---
 
 ### Object Page
 > Object page showing a saved request with all fields and the Approve / Reject action buttons.
 
-![Object Page](docs/screenshots/object_page.png)
+![Object Page](docs/screenshots/homepage_after_create.png)
 
 ---
 
-### Validation Error – End Date Before Start Date
-> Error message raised by `validateDates` when the end date is earlier than the start date.
+### Approved / Rejected Request
+> A request after clicking Approve or Reject: status updates and both action buttons are greyed out.
 
-![End Date Error](docs/screenshots/error_end_date.png)
-
----
-
-### Approved Request
-> A request after clicking Approve: status changes to A and both Approve and Reject buttons are greyed out.
-
-![Approved Request](docs/screenshots/approved_request.png)
+![Approved Rejected](docs/screenshots/leave_update_delete_reject_approve.png)
 
 ---
 
