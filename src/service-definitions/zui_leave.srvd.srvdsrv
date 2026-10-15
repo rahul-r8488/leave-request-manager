@@ -1,0 +1,5 @@
+@EndUserText.label: 'Leave Request Service'
+define service ZUI_LEAVE {
+  expose ZC_LEAVE    as LeaveRequest;
+  expose ZI_LTYPE_VH as LeaveTypeVH;
+}

@@ -1,0 +1,45 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: { typeName: 'Leave Request', typeNamePlural: 'Leave Requests',
+                  title: { type: #STANDARD, value: 'EmployeeName' } }
+annotate view ZC_LEAVE with
+{
+  @UI.facet: [ { id: 'Details', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE,
+                 label: 'Leave Details', position: 10 } ]
+
+  @UI.hidden: true
+  LeaveId;
+
+  @UI: { lineItem:       [ { position: 10, importance: #HIGH },
+                           { type: #FOR_ACTION, dataAction: 'approve', label: 'Approve' },
+                           { type: #FOR_ACTION, dataAction: 'reject',  label: 'Reject'  } ],
+         identification: [ { position: 10 },
+                           { type: #FOR_ACTION, dataAction: 'approve', label: 'Approve' },
+                           { type: #FOR_ACTION, dataAction: 'reject',  label: 'Reject'  } ],
+         selectionField: [ { position: 10 } ] }
+  EmployeeName;
+
+  @UI: { lineItem:       [ { position: 20, importance: #HIGH } ],
+         identification: [ { position: 20 } ],
+         selectionField: [ { position: 20 } ] }
+  LeaveType;
+
+  @UI: { lineItem:       [ { position: 30, importance: #HIGH } ],
+         identification: [ { position: 30 } ] }
+  StartDate;
+
+  @UI: { lineItem:       [ { position: 40, importance: #HIGH } ],
+         identification: [ { position: 40 } ] }
+  EndDate;
+
+  @UI: { lineItem:       [ { position: 50, importance: #HIGH } ],
+         identification: [ { position: 50 } ] }
+  LeaveDays;
+
+  @UI: { identification: [ { position: 60 } ] }
+  Reason;
+
+  @UI: { lineItem:       [ { position: 60, importance: #HIGH } ],
+         identification: [ { position: 70 } ],
+         selectionField: [ { position: 30 } ] }
+  Status;
+}

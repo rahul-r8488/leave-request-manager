@@ -1,0 +1,12 @@
+@EndUserText.label : 'Leave Type'
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #RESTRICTED
+define table zlr_ltype {
+
+  key client     : abap.clnt not null;
+  key leave_type : abap.char(1) not null;
+  description    : abap.char(20);
+
+}

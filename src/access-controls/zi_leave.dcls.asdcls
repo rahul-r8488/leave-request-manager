@@ -1,0 +1,5 @@
+@MappingRole: true
+define role ZI_LEAVE {
+  grant select on ZI_LEAVE
+    where ( LeaveId ) = aspect pfcg_auth( ZLR_LEAVE, ACTVT, '03' );
+}
