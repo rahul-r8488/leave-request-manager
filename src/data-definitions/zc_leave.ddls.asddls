@@ -6,7 +6,7 @@ define root view entity ZC_LEAVE
   as projection on ZI_LEAVE
 {
   key LeaveId,
-      @EndUserText.label: 'Employee Name'
+      @EndUserText.label: 'Employee'
       EmployeeName,
       @EndUserText.label: 'Leave Type'
       @Consumption.valueHelpDefinition: [{ entity: { name: 'ZI_LTYPE_VH', element: 'LeaveType' } }]
@@ -15,7 +15,7 @@ define root view entity ZC_LEAVE
       StartDate,
       @EndUserText.label: 'End Date'
       EndDate,
-      @EndUserText.label: 'Leave Days'
+      @EndUserText.label: 'Days'
       LeaveDays,
       @EndUserText.label: 'Reason'
       Reason,

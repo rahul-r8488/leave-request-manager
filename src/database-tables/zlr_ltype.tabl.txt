@@ -6,7 +6,7 @@
 define table zlr_ltype {
 
   key client     : abap.clnt not null;
-  key leave_type : abap.char(1) not null;
+  key leave_type : abap.char(2) not null;
   description    : abap.char(20);
 
 }

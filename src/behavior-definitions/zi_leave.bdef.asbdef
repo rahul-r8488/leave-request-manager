@@ -2,7 +2,7 @@ managed implementation in class zbp_i_leave unique;
 strict ( 2 );
 with draft;
 
-define behavior for ZI_LEAVE alias LeaveRequest
+define behavior for ZI_LEAVE alias Leave
 persistent table zlr_leave
 draft table zlr_leave_d
 lock master total etag LastChangedAt
@@ -23,16 +23,15 @@ etag master LocalLastChangedAt
   }
 
   field ( numbering : managed, readonly ) LeaveId;
-  field ( readonly ) Status, LeaveDays, CreatedBy, CreatedAt,
-                    LastChangedBy, LastChangedAt, LocalLastChangedAt;
+  field ( readonly ) LeaveDays, Status, CreatedBy, CreatedAt, LastChangedBy, LastChangedAt, LocalLastChangedAt;
   field ( mandatory ) EmployeeName, LeaveType, StartDate, EndDate;
 
   determination setInitialStatus on modify { create; }
-  determination calculateDays    on modify { create; field StartDate, EndDate; }
-  validation    validateDates    on save   { create; field StartDate, EndDate; }
+  determination calculateDays on modify { create; field StartDate, EndDate; }
+  validation validateDates on save { create; update; field StartDate, EndDate; }
 
-  action approve result [1] $self;
-  action reject  result [1] $self;
+  action ( features : instance ) approve result [1] $self;
+  action ( features : instance ) reject result [1] $self;
 
   mapping for zlr_leave corresponding
   {

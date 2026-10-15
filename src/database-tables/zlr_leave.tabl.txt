@@ -5,19 +5,19 @@
 @AbapCatalog.dataMaintenance : #RESTRICTED
 define table zlr_leave {
 
-  key client                : abap.clnt not null;
-  key leave_id              : sysuuid_x16 not null;
-  employee_name             : abap.char(100);
-  leave_type                : abap.char(1);
-  start_date                : abap.dats;
-  end_date                  : abap.dats;
-  leave_days                : abap.int4;
-  reason                    : abap.char(255);
-  status                    : abap.char(1);
-  created_by                : abp_creation_user;
-  created_at                : abp_creation_tstmpl;
-  last_changed_by           : abp_lastchange_user;
-  last_changed_at           : abp_lastchange_tstmpl;
-  local_last_changed_at     : abp_locinst_lastchange_tstmpl;
+  key client            : abap.clnt not null;
+  key leave_id          : sysuuid_x16 not null;
+  employee_name         : abap.char(60);
+  leave_type            : abap.char(2);
+  start_date            : abap.dats;
+  end_date              : abap.dats;
+  leave_days            : abap.int4;
+  reason                : abap.char(255);
+  status                : abap.char(1);
+  created_by            : abp_creation_user;
+  created_at            : abp_creation_tstmpl;
+  last_changed_by       : abp_lastchange_user;
+  last_changed_at       : abp_lastchange_tstmpl;
+  local_last_changed_at : abp_locinst_lastchange_tstmpl;
 
 }

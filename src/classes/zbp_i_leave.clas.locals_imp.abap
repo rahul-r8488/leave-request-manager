@@ -1,126 +1,124 @@
-CLASS lhc_LeaveRequest DEFINITION INHERITING FROM cl_abap_behavior_handler.
+CLASS lhc_Leave DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
 
     METHODS get_global_authorizations FOR GLOBAL AUTHORIZATION
-      REQUEST requested_authorizations FOR LeaveRequest RESULT result.
+      IMPORTING REQUEST requested_authorizations FOR Leave RESULT result.
+
+    METHODS get_instance_features FOR INSTANCE FEATURES
+      IMPORTING keys REQUEST requested_features FOR Leave RESULT result.
 
     METHODS setInitialStatus FOR DETERMINE ON MODIFY
-      keys FOR LeaveRequest~setInitialStatus.
+      IMPORTING keys FOR Leave~setInitialStatus.
 
     METHODS calculateDays FOR DETERMINE ON MODIFY
-      keys FOR LeaveRequest~calculateDays.
+      IMPORTING keys FOR Leave~calculateDays.
 
     METHODS validateDates FOR VALIDATE ON SAVE
-      keys FOR LeaveRequest~validateDates.
+      IMPORTING keys FOR Leave~validateDates.
 
     METHODS approve FOR MODIFY
-      keys FOR ACTION LeaveRequest~approve RESULT result.
+      IMPORTING keys FOR ACTION Leave~approve RESULT result.
 
     METHODS reject FOR MODIFY
-      keys FOR ACTION LeaveRequest~reject RESULT result.
+      IMPORTING keys FOR ACTION Leave~reject RESULT result.
 
 ENDCLASS.
 
-CLASS lhc_LeaveRequest IMPLEMENTATION.
+CLASS lhc_Leave IMPLEMENTATION.
 
   METHOD get_global_authorizations.
   ENDMETHOD.
 
+  METHOD get_instance_features.
+    READ ENTITIES OF zi_leave IN LOCAL MODE
+      ENTITY Leave FIELDS ( Status ) WITH CORRESPONDING #( keys )
+      RESULT DATA(leaves).
+
+    result = VALUE #( FOR l IN leaves
+      ( %tky = l-%tky
+        %action-approve = COND #( WHEN l-Status = 'P'
+                                  THEN if_abap_behv=>fc-o-enabled
+                                  ELSE if_abap_behv=>fc-o-disabled )
+        %action-reject  = COND #( WHEN l-Status = 'P'
+                                  THEN if_abap_behv=>fc-o-enabled
+                                  ELSE if_abap_behv=>fc-o-disabled ) ) ).
+  ENDMETHOD.
+
   METHOD setInitialStatus.
     READ ENTITIES OF zi_leave IN LOCAL MODE
-      ENTITY LeaveRequest FIELDS ( Status ) WITH CORRESPONDING #( keys )
-      RESULT DATA(requests).
+      ENTITY Leave FIELDS ( Status ) WITH CORRESPONDING #( keys )
+      RESULT DATA(leaves).
 
-    DELETE requests WHERE Status IS NOT INITIAL.
-    CHECK requests IS NOT INITIAL.
+    DELETE leaves WHERE Status IS NOT INITIAL.
+    CHECK leaves IS NOT INITIAL.
 
     MODIFY ENTITIES OF zi_leave IN LOCAL MODE
-      ENTITY LeaveRequest UPDATE FIELDS ( Status )
-      WITH VALUE #( FOR r IN requests ( %tky = r-%tky Status = 'P' ) ).
+      ENTITY Leave UPDATE FIELDS ( Status )
+      WITH VALUE #( FOR l IN leaves ( %tky = l-%tky Status = 'P' ) ).
   ENDMETHOD.
 
   METHOD calculateDays.
-    " Read StartDate and EndDate for all changed records
     READ ENTITIES OF zi_leave IN LOCAL MODE
-      ENTITY LeaveRequest FIELDS ( StartDate EndDate ) WITH CORRESPONDING #( keys )
-      RESULT DATA(requests).
+      ENTITY Leave FIELDS ( StartDate EndDate ) WITH CORRESPONDING #( keys )
+      RESULT DATA(leaves).
 
-    " Build update table via LOOP to avoid the WHERE-inside-FOR activation issue
-    DATA lt_update TYPE TABLE FOR UPDATE zi_leave\\LeaveRequest.
-    LOOP AT requests INTO DATA(req).
-      CHECK req-StartDate IS NOT INITIAL AND req-EndDate IS NOT INITIAL.
-      CHECK req-EndDate >= req-StartDate.
-      DATA(lv_days) = req-EndDate - req-StartDate + 1.
-      APPEND VALUE #( %tky      = req-%tky
-                      LeaveDays = lv_days ) TO lt_update.
+    DATA updates TYPE TABLE FOR UPDATE zi_leave.
+
+    LOOP AT leaves INTO DATA(lv)
+         WHERE StartDate IS NOT INITIAL AND EndDate IS NOT INITIAL.
+      IF lv-EndDate >= lv-StartDate.
+        APPEND VALUE #( %tky      = lv-%tky
+                        LeaveDays = lv-EndDate - lv-StartDate + 1 ) TO updates.
+      ENDIF.
     ENDLOOP.
 
-    CHECK lt_update IS NOT INITIAL.
+    CHECK updates IS NOT INITIAL.
+
     MODIFY ENTITIES OF zi_leave IN LOCAL MODE
-      ENTITY LeaveRequest UPDATE FIELDS ( LeaveDays )
-      WITH lt_update.
+      ENTITY Leave UPDATE FIELDS ( LeaveDays )
+      WITH updates.
   ENDMETHOD.
 
   METHOD validateDates.
     READ ENTITIES OF zi_leave IN LOCAL MODE
-      ENTITY LeaveRequest FIELDS ( StartDate EndDate ) WITH CORRESPONDING #( keys )
-      RESULT DATA(requests).
+      ENTITY Leave FIELDS ( StartDate EndDate ) WITH CORRESPONDING #( keys )
+      RESULT DATA(leaves).
 
-    LOOP AT requests INTO DATA(req).
-      CHECK req-StartDate IS NOT INITIAL AND req-EndDate IS NOT INITIAL.
-      IF req-EndDate < req-StartDate.
-        APPEND VALUE #( %tky = req-%tky ) TO failed-LeaveRequest.
-        APPEND VALUE #( %tky = req-%tky
+    LOOP AT leaves INTO DATA(leave)
+         WHERE StartDate IS NOT INITIAL AND EndDate IS NOT INITIAL.
+      IF leave-EndDate < leave-StartDate.
+        APPEND VALUE #( %tky = leave-%tky ) TO failed-leave.
+        APPEND VALUE #( %tky = leave-%tky
                         %msg = new_message_with_text(
                                  severity = if_abap_behv_message=>severity-error
-                                 text     = 'End date must not be before start date' )
-                        %element-EndDate = if_abap_behv=>mk-on ) TO reported-LeaveRequest.
+                                 text     = 'End date cannot be before start date' )
+                        %element-EndDate = if_abap_behv=>mk-on ) TO reported-leave.
       ENDIF.
     ENDLOOP.
   ENDMETHOD.
 
   METHOD approve.
-    " Only act on requests that are still Pending
-    READ ENTITIES OF zi_leave IN LOCAL MODE
-      ENTITY LeaveRequest FIELDS ( Status ) WITH CORRESPONDING #( keys )
-      RESULT DATA(requests).
-
-    DATA lt_update TYPE TABLE FOR UPDATE zi_leave\\LeaveRequest.
-    LOOP AT requests INTO DATA(req) WHERE Status = 'P'.
-      APPEND VALUE #( %tky = req-%tky Status = 'A' ) TO lt_update.
-    ENDLOOP.
-
-    CHECK lt_update IS NOT INITIAL.
     MODIFY ENTITIES OF zi_leave IN LOCAL MODE
-      ENTITY LeaveRequest UPDATE FIELDS ( Status )
-      WITH lt_update.
+      ENTITY Leave UPDATE FIELDS ( Status )
+      WITH VALUE #( FOR key IN keys ( %tky = key-%tky Status = 'A' ) ).
 
     READ ENTITIES OF zi_leave IN LOCAL MODE
-      ENTITY LeaveRequest ALL FIELDS WITH CORRESPONDING #( keys )
-      RESULT DATA(updated).
-    result = VALUE #( FOR r IN updated ( %tky = r-%tky %param = r ) ).
+      ENTITY Leave ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(leaves).
+
+    result = VALUE #( FOR l IN leaves ( %tky = l-%tky %param = l ) ).
   ENDMETHOD.
 
   METHOD reject.
-    " Only act on requests that are still Pending
-    READ ENTITIES OF zi_leave IN LOCAL MODE
-      ENTITY LeaveRequest FIELDS ( Status ) WITH CORRESPONDING #( keys )
-      RESULT DATA(requests).
-
-    DATA lt_update TYPE TABLE FOR UPDATE zi_leave\\LeaveRequest.
-    LOOP AT requests INTO DATA(req) WHERE Status = 'P'.
-      APPEND VALUE #( %tky = req-%tky Status = 'R' ) TO lt_update.
-    ENDLOOP.
-
-    CHECK lt_update IS NOT INITIAL.
     MODIFY ENTITIES OF zi_leave IN LOCAL MODE
-      ENTITY LeaveRequest UPDATE FIELDS ( Status )
-      WITH lt_update.
+      ENTITY Leave UPDATE FIELDS ( Status )
+      WITH VALUE #( FOR key IN keys ( %tky = key-%tky Status = 'R' ) ).
 
     READ ENTITIES OF zi_leave IN LOCAL MODE
-      ENTITY LeaveRequest ALL FIELDS WITH CORRESPONDING #( keys )
-      RESULT DATA(updated).
-    result = VALUE #( FOR r IN updated ( %tky = r-%tky %param = r ) ).
+      ENTITY Leave ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(leaves).
+
+    result = VALUE #( FOR l IN leaves ( %tky = l-%tky %param = l ) ).
   ENDMETHOD.
 
 ENDCLASS.

@@ -32,7 +32,7 @@ leave-request-manager/
 ├── src/
 │   ├── classes/                                          # ABAP Classes
 │   │   ├── zbp_i_leave.clas.abap                         # Behaviour pool (global shell)
-│   │   ├── zbp_i_leave.clas.locals_imp.abap              # Local handler (lhc_LeaveRequest)
+│   │   ├── zbp_i_leave.clas.locals_imp.abap              # Local handler (lhc_Leave)
 │   │   └── zcl_lr_load_data.clas.abap                    # Seed data loader (run with F9)
 │   ├── database-tables/                                  # Dictionary Tables
 │   │   ├── zlr_ltype.tabl.txt                            # Leave type master data
@@ -67,14 +67,14 @@ leave-request-manager/
 ## Screenshots
 
 ### List Report – All Requests
-> The main list report showing all leave requests with Employee Name, Leave Type, Start/End Date, Leave Days, and Status.
+> The main list report showing all leave requests with Employee, Leave Type, Start/End Date, Days, and Status. Filter bar shows Leave Type and Status dropdowns.
 
 ![List Report](docs/screenshots/list_report.png)
 
 ---
 
 ### Create New Request
-> The draft form to fill in Employee Name, Leave Type (value help), Start Date, End Date, and Reason.
+> The draft form to fill in Employee, Leave Type (value help — Annual AL / Sick SL / Casual CL), Start Date, End Date, and Reason.
 
 ![Create Request](docs/screenshots/create_request.png)
 
@@ -136,7 +136,7 @@ The field name `days` caused an activation error because it is a reserved keywor
 
 ### 2 – `calculateDays` determination failed to activate
 The original code used a `WHERE` condition inside a `FOR` expression inside `MODIFY ENTITIES … WITH VALUE #( FOR … WHERE … )`. The syntax checker raised *"STARTDATE is unknown"* and refused to activate.  
-**Fix:** rewrote the determination as a `LOOP AT requests INTO DATA(req) WHERE …` block that builds an explicit update internal table (`lt_update`) and then calls `MODIFY ENTITIES … WITH lt_update`.
+**Fix:** rewrote the determination as a `LOOP AT leaves INTO DATA(lv) WHERE …` block that builds an explicit update internal table (`updates`) and then calls `MODIFY ENTITIES … WITH updates`.
 
 ### 3 – Service wouldn't open: UI5 component could not be loaded
 After binding, clicking "Preview" gave "UI5 component could not be loaded". Checking `$metadata` revealed that the entity alias `Leave` generated an entity type called `LeaveType`, which clashed with the `LeaveType` property name on the same entity.  
@@ -151,7 +151,7 @@ After binding, clicking "Preview" gave "UI5 component could not be loaded". Chec
 - [ ] Change end date to 14 June → recalculates to 5 days
 - [ ] Approve button sets Status = A and greys out both buttons
 - [ ] Reject button sets Status = R and greys out both buttons
-- [ ] Leave Type dropdown shows Annual, Sick, Casual
+- [ ] Leave Type dropdown shows Annual (AL), Sick (SL), Casual (CL)
 - [ ] Empty Employee Name → mandatory field error
 
 ---
@@ -172,9 +172,10 @@ After binding, clicking "Preview" gave "UI5 component could not be loaded". Chec
 |---------|-------------|----------------------|
 | Actions | 1 (markComplete) | 2 (Approve, Reject) |
 | Determinations | 1 (setInitialStatus) | 2 (setInitialStatus + calculateDays) |
-| Validations | 1 (validateDueDate) | 1 (validateDates – two-field comparison) |
-| Feature control | None | Approve/Reject grey out after decision |
+| Validations | 1 (validateDueDate) | 1 (validateDates – two-field comparison, fires on create + update) |
+| Feature control | None | `get_instance_features` — Approve/Reject grey out after decision |
 | Value help filter | Priority | Leave Type + Status |
+| Leave type codes | — | 2-char: AL / SL / CL |
 
 ---
 
